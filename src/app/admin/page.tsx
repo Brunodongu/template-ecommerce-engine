@@ -61,6 +61,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { TENANT_CONFIG } from "@/lib/tenant-config";
+
+const STORAGE_PREFIX = `gmedia_admin_${TENANT_CONFIG.slug || "default"}`;
+const tenantStorageKey = (suffix: string) =>
+  `${STORAGE_PREFIX}_${suffix.replace(/^gmedia_client_/, "")}`;
 
 // --- TIPOS DE DATOS MODULARES ---
 export interface FAQItem {
@@ -71,36 +76,7 @@ export interface FAQItem {
   visible: boolean;
 }
 
-const SEED_FAQS: FAQItem[] = [
-  {
-    id: "faq-1",
-    question: "¿Qué tiempo de vida útil tiene el césped sintético y qué mantenimiento requiere?",
-    answer: "Tiene una vida útil estimada de 8 a 12 años gracias a su protección contra radiación UV. Su mantenimiento es mínimo: solo requiere cepillado periódico y limpieza con agua para remover hojas y polvo.",
-    category: "Garantía & Durabilidad",
-    visible: true
-  },
-  {
-    id: "faq-2",
-    question: "¿Tienen cobertura para proyectos fuera de Santo Domingo?",
-    answer: "Sí, disponemos de cuadrillas técnicas especializadas con capacidad de movilización a cualquier provincia del país, incluyendo Santiago, Punta Cana, La Romana, Samaná y zonas turísticas.",
-    category: "Cobertura",
-    visible: true
-  },
-  {
-    id: "faq-3",
-    question: "¿Cuáles son los métodos de pago y facilidades disponibles?",
-    answer: "Aceptamos transferencias bancarias a cuentas corrientes de Banco Popular y BHD León, pagos con tarjeta de crédito corporativa y cheques comerciales. Emitimos comprobantes fiscales autorizados (NCF).",
-    category: "Pagos & Facturación",
-    visible: true
-  },
-  {
-    id: "faq-4",
-    question: "¿Cómo funciona el sistema de drenaje durante lluvias torrenciales?",
-    answer: "Nuestras alfombras y bases cuentan con microperforaciones de drenaje de alta capacidad que evacúan más de 60 litros por metro cuadrado por minuto, impidiendo encharcamientos o acumulación de agua.",
-    category: "Especificaciones Técnicas",
-    visible: true
-  }
-];
+const SEED_FAQS: FAQItem[] = TENANT_CONFIG.faqs;
 interface Lead {
   id: string;
   name: string;
@@ -173,14 +149,14 @@ interface ServiceItem {
   description: string;
 }
 
-// --- DATOS SEMILLA PARA CADA MÓDULO ---
+// --- DATOS SEMILLA MULTI-TENANT PARA CADA MODULO ---
 const SEED_LEADS: Lead[] = [
   {
     id: "lead-1",
     name: "Ing. Carlos Mendoza",
     email: "cmendoza@constructora-antillas.com",
     phone: "+1 (809) 555-0142",
-    service: "Instalación Integral & Paisajismo",
+    service: TENANT_CONFIG.services[0]?.name || "Consultoria Inicial",
     budget: "$4,500 USD",
     date: "Hoy, 10:24 AM",
     status: "new"
@@ -190,19 +166,19 @@ const SEED_LEADS: Lead[] = [
     name: "Dra. Patricia Almonte",
     email: "patricia.almonte@clinica.do",
     phone: "+1 (829) 444-8891",
-    service: "Mantenimiento & Presupuesto por m²",
+    service: TENANT_CONFIG.services[1]?.name || "Implementacion Profesional",
     budget: "$1,850 USD",
     date: "Ayer, 4:15 PM",
     status: "contacted"
   },
   {
     id: "lead-3",
-    name: "Lic. Manuel Henríquez",
+    name: "Lic. Manuel Henriquez",
     email: "m.henriquez@grupoinmobiliario.com",
     phone: "+1 (809) 333-7721",
-    service: "Consultoría & Proyecto Especial",
+    service: TENANT_CONFIG.services[2]?.name || "Soporte Continuo",
     budget: "$8,200 USD",
-    date: "Hace 2 días",
+    date: "Hace 2 dias",
     status: "closed"
   }
 ];
@@ -210,23 +186,23 @@ const SEED_LEADS: Lead[] = [
 const SEED_APPOINTMENTS: Appointment[] = [
   {
     id: "apt-1",
-    clientName: "Roberto Gómez",
+    clientName: "Roberto Gomez",
     phone: "+1 (809) 777-2211",
-    service: "Inspección Técnica en Terreno",
+    service: TENANT_CONFIG.services[0]?.name || "Evaluacion Inicial",
     date: "2026-10-15",
     time: "10:00 AM",
     status: "confirmed",
-    notes: "Visita en zona norte"
+    notes: "Seguimiento prioritario"
   },
   {
     id: "apt-2",
-    clientName: "Elena Vásquez",
+    clientName: "Elena Vasquez",
     phone: "+1 (829) 666-4433",
-    service: "Consulta Inicial & Muestra de Materiales",
+    service: TENANT_CONFIG.services[1]?.name || "Presentacion de Propuesta",
     date: "2026-10-16",
     time: "03:30 PM",
     status: "pending",
-    notes: "Interesada en catálogo premium"
+    notes: "Solicita cotizacion formal"
   }
 ];
 
@@ -234,30 +210,28 @@ const SEED_QUOTES: Quote[] = [
   {
     id: "q-1",
     quoteNumber: "COT-2026-001",
-    clientName: "Constructora del Caribe SRL",
+    clientName: "Grupo Empresarial del Caribe SRL",
     clientPhone: "+1 (809) 555-0142",
-    clientEmail: "proyectos@constructoradelcaribe.com",
+    clientEmail: "proyectos@grupocaribe.com",
     date: "2026-10-08",
     status: "approved",
     taxRate: 18,
     items: [
-      { id: "i1", description: "Instalación Césped Deportivo 50mm (250 m²)", quantity: 250, unitPrice: 28 },
-      { id: "i2", description: "Preparación de Suelo y Nivelación Láser", quantity: 1, unitPrice: 850 },
-      { id: "i3", description: "Sistema de Drenaje Subterráneo Perimetral", quantity: 1, unitPrice: 1200 }
+      { id: "i1", description: TENANT_CONFIG.services[0]?.name || "Servicio Principal Corporativo", quantity: 1, unitPrice: 1850 },
+      { id: "i2", description: "Implementacion y Configuracion Integral", quantity: 1, unitPrice: 950 }
     ]
   },
   {
     id: "q-2",
     quoteNumber: "COT-2026-002",
-    clientName: "Residencial Bella Vista Gardens",
+    clientName: "Consorcio Comercial Bella Vista",
     clientPhone: "+1 (829) 444-8891",
-    clientEmail: "administracion@bellavistagardens.com",
+    clientEmail: "administracion@bellavista.com",
     date: "2026-10-11",
     status: "sent",
     taxRate: 18,
     items: [
-      { id: "i1", description: "Césped Paisajístico Ornamental 40mm (120 m²)", quantity: 120, unitPrice: 24 },
-      { id: "i2", description: "Iluminación LED Solar Perimetral", quantity: 8, unitPrice: 75 }
+      { id: "i1", description: TENANT_CONFIG.services[1]?.name || "Plan Empresarial Mensual", quantity: 1, unitPrice: 1200 }
     ]
   }
 ];
@@ -265,74 +239,27 @@ const SEED_QUOTES: Quote[] = [
 const SEED_PROJECTS: ProjectShowcase[] = [
   {
     id: "proj-1",
-    title: "Residencial Las Praderas - Área Social",
-    category: "Residencial",
-    description: "Transformación de 350 m² de terreno irregular en área verde de alto tránsito con césped 40mm y drenaje inteligente.",
-    beforeImgUrl: "https://images.unsplash.com/photo-1592417817098-8f3d69102a47?auto=format&fit=crop&w=600&q=80",
-    afterImgUrl: "https://images.unsplash.com/photo-1558904541-efa8c4a08931?auto=format&fit=crop&w=600&q=80",
+    title: `${TENANT_CONFIG.brandName} - Caso Destacado 01`,
+    category: TENANT_CONFIG.industry,
+    description: "Proyecto corporativo ejecutado con estandares de calidad certificados y seguimiento integral.",
+    beforeImgUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80",
+    afterImgUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=600&q=80",
     visible: true
   },
   {
     id: "proj-2",
-    title: "Complejo Deportivo Club Bella Vista",
-    category: "Deportivo",
-    description: "Cancha de fútbol 7 con especificación profesional FIFA Quality y sistema de iluminación perimetral.",
-    beforeImgUrl: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=600&q=80",
-    afterImgUrl: "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=600&q=80",
+    title: `${TENANT_CONFIG.brandName} - Caso Destacado 02`,
+    category: TENANT_CONFIG.industry,
+    description: "Implementacion a medida orientada a resultados y satisfaccion garantizada.",
+    beforeImgUrl: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=600&q=80",
+    afterImgUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80",
     visible: true
   }
 ];
 
-const SEED_REVIEWS: Review[] = [
-  {
-    id: "rev-1",
-    author: "Arq. Mariana Silvestre",
-    roleOrCompany: "Directora de Proyectos, Silvestre & Asoc.",
-    rating: 5,
-    comment: "Excelente calidad de materiales y puntualidad en la entrega. El resultado final superó las expectativas del cliente.",
-    date: "Hace 1 semana",
-    visible: true
-  },
-  {
-    id: "rev-2",
-    author: "Lic. Fernando Brea",
-    roleOrCompany: "Propietario Residencial",
-    rating: 5,
-    comment: "La atención personalizada y el cálculo de presupuesto en vivo nos dio total confianza desde el primer día.",
-    date: "Hace 3 semanas",
-    visible: true
-  }
-];
+const SEED_REVIEWS: Review[] = TENANT_CONFIG.testimonials;
 
-const SEED_SERVICES: ServiceItem[] = [
-  {
-    id: "serv-1",
-    name: "Instalación de Césped Sintético",
-    category: "Jardinería & Paisajismo",
-    priceEstimate: "Desde $25/m²",
-    duration: "2 a 5 días",
-    badge: "MÁS SOLICITADO",
-    description: "Suministro e instalación profesional de césped sintético de alta resistencia UV con drenaje perimetral."
-  },
-  {
-    id: "serv-2",
-    name: "Mantenimiento Periódico & Limpieza",
-    category: "Mantenimiento",
-    priceEstimate: "$150 / sesión",
-    duration: "1 jornada",
-    badge: "GARANTIZADO",
-    description: "Cepillado mecánico, desinfección antibacteriana y reposición de arena de sílice."
-  },
-  {
-    id: "serv-3",
-    name: "Diseño de Jardines & Paisajismo 3D",
-    category: "Diseño & Planificación",
-    priceEstimate: "Cotización a medida",
-    duration: "3 a 7 días",
-    badge: "ARQUITECTURA",
-    description: "Modelado preliminar en 3D de áreas verdes, caminerías, iluminación y riego automatizado."
-  }
-];
+const SEED_SERVICES: ServiceItem[] = TENANT_CONFIG.services;
 
 export default function ClientAdminPortal() {
   // Autenticación de Marca Blanca
@@ -348,7 +275,7 @@ export default function ClientAdminPortal() {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('gmedia_client_admin_theme', next);
+      localStorage.setItem(tenantStorageKey('theme'), next);
     }
   };
 
@@ -356,7 +283,7 @@ export default function ClientAdminPortal() {
     setIsSidebarCollapsed(prev => {
       const next = !prev;
       if (typeof window !== 'undefined') {
-        localStorage.setItem('gmedia_client_admin_sidebar_collapsed', String(next));
+        localStorage.setItem(tenantStorageKey('sidebar_collapsed'), String(next));
       }
       return next;
     });
@@ -388,47 +315,47 @@ export default function ClientAdminPortal() {
   // Configuración del Sitio & Interruptores de Módulos (Feature Toggles)
   const [siteConfig, setSiteConfig] = useState({
     // 1. Identidad & Contacto
-    brandName: "Portal Corporativo",
-    phone: "+1 (809) 000-0000",
-    email: "contacto@empresa.com",
-    address: "Santo Domingo, República Dominicana",
-    whatsappNumber: "18090000000",
-    leadNotificationEmails: "ventas@empresa.com, gerencia@empresa.com",
-    leadNotificationWhatsapp: "18090000000",
+    brandName: TENANT_CONFIG.brandName,
+    phone: TENANT_CONFIG.phone,
+    email: TENANT_CONFIG.email,
+    address: TENANT_CONFIG.address,
+    whatsappNumber: TENANT_CONFIG.whatsappNumber,
+    leadNotificationEmails: TENANT_CONFIG.email,
+    leadNotificationWhatsapp: TENANT_CONFIG.whatsappNumber,
 
     // 2. Horarios & Estado en Vivo
     hoursWeekdays: "Lunes a Viernes: 8:00 AM - 6:00 PM",
-    hoursSaturday: "Sábados: 9:00 AM - 1:00 PM",
+    hoursSaturday: "Sabados: 9:00 AM - 1:00 PM",
     hoursSunday: "Domingos: Cerrado",
     liveStatusMode: "auto" as 'auto' | 'open' | 'closed',
     isHolidayActive: false,
-    holidayNotice: "Estaremos cerrados por feriado oficial. Su mensaje será atendido a primera hora hábil.",
+    holidayNotice: "Estaremos cerrados por feriado oficial. Su mensaje sera atendido a primera hora habil.",
 
     // 3. Barra de Anuncios & Promociones
     announcementActive: true,
-    topbarMessage: "Atención disponible para cotizaciones inmediatas en todo el país",
-    announcementBadge: "OFERTA",
-    announcementCtaText: "Cotizar en 2 Minutos",
-    announcementCtaLink: "#cotizador",
+    topbarMessage: "Atencion disponible para cotizaciones inmediatas",
+    announcementBadge: "DESTACADO",
+    announcementCtaText: "Solicitar Cotizacion",
+    announcementCtaLink: "#contacto",
     announcementType: "promo" as 'promo' | 'info' | 'urgent',
 
     // 4. Hero & Mensajes de Conversión
-    heroTitle: "Transformamos Espacios con Materiales de Máxima Resistencia",
-    heroSubtitle: "Instalación profesional, drenaje inteligente y garantía de 8 años en República Dominicana.",
-    heroCtaText: "Solicitar Cotización Inmediata",
-    whatsappDefaultMessage: "Hola, vi su sitio web y me gustaría recibir una cotización personalizada.",
+    heroTitle: TENANT_CONFIG.tagline,
+    heroSubtitle: TENANT_CONFIG.description,
+    heroCtaText: "Solicitar Cotizacion Inmediata",
+    whatsappDefaultMessage: `Hola ${TENANT_CONFIG.brandName}, vi su sitio web y me gustaria recibir una cotizacion personalizada.`,
 
     // 5. Redes Sociales
-    socialInstagram: "https://instagram.com/empresa",
-    socialFacebook: "https://facebook.com/empresa",
-    socialLinkedin: "https://linkedin.com/company/empresa",
-    socialTiktok: "https://tiktok.com/@empresa",
+    socialInstagram: `https://instagram.com/${TENANT_CONFIG.slug}`,
+    socialFacebook: `https://facebook.com/${TENANT_CONFIG.slug}`,
+    socialLinkedin: `https://linkedin.com/company/${TENANT_CONFIG.slug}`,
+    socialTiktok: `https://tiktok.com/@${TENANT_CONFIG.slug}`,
     socialGoogleMaps: "https://maps.google.com",
 
     // 6. SEO & Metaetiquetas
-    metaTitle: "Empresa Líder en Soluciones Profesionales | República Dominicana",
-    metaDescription: "Instalación, suministros de alta gama y cotizaciones formalizadas en 24 horas.",
-    ogImageUrl: "https://images.unsplash.com/photo-1592417817098-8f3d69102a47?auto=format&fit=crop&w=1200&q=80",
+    metaTitle: `${TENANT_CONFIG.brandName} | ${TENANT_CONFIG.tagline}`,
+    metaDescription: TENANT_CONFIG.description,
+    ogImageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80",
 
     // 7. Píxeles de Marketing
     googleAnalyticsId: "G-XXXXXXXXXX",
@@ -467,63 +394,65 @@ export default function ClientAdminPortal() {
   const [showNewFaqModal, setShowNewFaqModal] = useState(false);
   const [newFaq, setNewFaq] = useState({ question: "", answer: "", category: "General" });
 
-  // Carga y Persistencia en localStorage
+  // Carga y Persistencia aislada por tenant en localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem("gmedia_client_admin_theme");
+    const savedTheme = localStorage.getItem(tenantStorageKey("theme"));
     if (savedTheme === "light" || savedTheme === "dark") setTheme(savedTheme);
 
-    const savedSidebar = localStorage.getItem("gmedia_client_admin_sidebar_collapsed");
+    const savedSidebar = localStorage.getItem(tenantStorageKey("sidebar_collapsed"));
     if (savedSidebar === "true") setIsSidebarCollapsed(true);
 
-    const savedAuth = localStorage.getItem("gmedia_client_admin_auth");
+    const savedAuth = localStorage.getItem(tenantStorageKey("auth"));
     if (savedAuth === "true") setIsAuthenticated(true);
 
-    const savedLeads = localStorage.getItem("gmedia_client_leads");
+    const savedLeads = localStorage.getItem(tenantStorageKey("leads"));
     if (savedLeads) try { setLeads(JSON.parse(savedLeads)); } catch {}
 
-    const savedApts = localStorage.getItem("gmedia_client_apts");
+    const savedApts = localStorage.getItem(tenantStorageKey("apts"));
     if (savedApts) try { setAppointments(JSON.parse(savedApts)); } catch {}
 
-    const savedQuotes = localStorage.getItem("gmedia_client_quotes");
+    const savedQuotes = localStorage.getItem(tenantStorageKey("quotes"));
     if (savedQuotes) try { setQuotes(JSON.parse(savedQuotes)); } catch {}
 
-    const savedProjects = localStorage.getItem("gmedia_client_projects");
+    const savedProjects = localStorage.getItem(tenantStorageKey("projects"));
     if (savedProjects) try { setProjects(JSON.parse(savedProjects)); } catch {}
 
-    const savedReviews = localStorage.getItem("gmedia_client_reviews");
+    const savedReviews = localStorage.getItem(tenantStorageKey("reviews"));
     if (savedReviews) try { setReviews(JSON.parse(savedReviews)); } catch {}
 
-    const savedServices = localStorage.getItem("gmedia_client_services");
+    const savedServices = localStorage.getItem(tenantStorageKey("services"));
     if (savedServices) try { setServices(JSON.parse(savedServices)); } catch {}
 
-    const savedFaqs = localStorage.getItem("gmedia_client_faqs");
+    const savedFaqs = localStorage.getItem(tenantStorageKey("faqs"));
     if (savedFaqs) try { setFaqs(JSON.parse(savedFaqs)); } catch {}
 
-    const savedConfig = localStorage.getItem("gmedia_client_site_config");
+    const savedConfig = localStorage.getItem(tenantStorageKey("site_config"));
     if (savedConfig) try { setSiteConfig(JSON.parse(savedConfig)); } catch {}
   }, []);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (accessPin.trim() === "gmedia2026" || accessPin.trim() === "admin" || accessPin.trim().length >= 4) {
+    const enteredPin = accessPin.trim();
+    if (enteredPin === TENANT_CONFIG.adminPin || enteredPin === "gmedia2026") {
       setIsAuthenticated(true);
-      localStorage.setItem("gmedia_client_admin_auth", "true");
-      toast.success("¡Bienvenido al Centro de Control Corporativo!");
+      setAuthError(false);
+      localStorage.setItem(tenantStorageKey("auth"), "true");
+      toast.success("Bienvenido al Centro de Control Corporativo.");
     } else {
       setAuthError(true);
-      toast.error("Contraseña o PIN incorrecto.");
+      toast.error("Contrasena o PIN incorrecto.");
     }
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem("gmedia_client_admin_auth");
-    toast.info("Sesión finalizada de manera segura.");
+    localStorage.removeItem(tenantStorageKey("auth"));
+    toast.info("Sesion finalizada de manera segura.");
   };
 
-  // Helper de guardado genérico
+  // Helper de guardado generico aislado por tenant
   const persist = (key: string, data: any) => {
-    localStorage.setItem(key, JSON.stringify(data));
+    localStorage.setItem(tenantStorageKey(key), JSON.stringify(data));
   };
 
   // Acciones de Leads
@@ -1917,7 +1846,7 @@ export default function ClientAdminPortal() {
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
                         }`}
                       >
-                        {proj.visible ? '🟢 Publicado en Web' : '⚪ Oculto'}
+                        {proj.visible ? 'Publicado en Web' : 'Oculto'}
                       </button>
                     </div>
                   </div>
@@ -2299,8 +2228,8 @@ export default function ClientAdminPortal() {
                         }`}
                       >
                         <option value="auto">Automático (Según Horario y Reloj)</option>
-                        <option value="open">Forzar: Siempre Abierto (🟢 Abierto Ahora)</option>
-                        <option value="closed">Forzar: Fuera de Horario (🔴 Cerrado)</option>
+                        <option value="open">Forzar: Siempre Abierto (Abierto Ahora)</option>
+                        <option value="closed">Forzar: Fuera de Horario (Cerrado)</option>
                       </select>
                     </div>
 
@@ -2313,7 +2242,7 @@ export default function ClientAdminPortal() {
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> 🟢 Abierto Ahora · Respuesta en minutos
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Abierto Ahora - Respuesta en minutos
                         </span>
                       )}
                     </div>
@@ -2646,7 +2575,7 @@ export default function ClientAdminPortal() {
                                   : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
                               }`}
                             >
-                              {faq.visible ? '🟢 Publicado' : '⚪ Oculto'}
+                              {faq.visible ? 'Publicado' : 'Oculto'}
                             </button>
                             <button
                               onClick={() => handleDeleteFaq(faq.id)}
@@ -2896,14 +2825,14 @@ export default function ClientAdminPortal() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  { key: 'leads', name: '📥 Bandeja de Leads & CRM', desc: 'Captura y respuesta por WhatsApp en 1 clic.' },
-                  { key: 'appointments', name: '📅 Citas & Agenda', desc: 'Gestor de visitas técnicas o consultas.' },
-                  { key: 'quotes', name: '💰 Cotizador Proforma', desc: 'Emisión de presupuestos formales desglosados.' },
-                  { key: 'portfolio', name: '📸 Galería de Trabajos', desc: 'Casos de éxito con fotos Antes/Después.' },
-                  { key: 'reviews', name: '⭐ Gestor de Reseñas', desc: 'Prueba social con testimonios de clientes.' },
-                  { key: 'services', name: '🏷️ Catálogo de Servicios', desc: 'Matriz de servicios y precios base.' },
-                  { key: 'analytics', name: '📊 Analítica Comercial', desc: 'Métricas de conversión y tráfico web.' },
-                  { key: 'cms', name: '📝 Editor de Contenidos', desc: 'Cambio de teléfonos y textos públicos.' }
+                  { key: 'leads', name: 'Bandeja de Leads & CRM', desc: 'Captura y respuesta por WhatsApp en 1 clic.' },
+                  { key: 'appointments', name: 'Citas & Agenda', desc: 'Gestor de visitas tecnicas o consultas.' },
+                  { key: 'quotes', name: 'Cotizador Proforma', desc: 'Emision de presupuestos formales desglosados.' },
+                  { key: 'portfolio', name: 'Galeria de Trabajos', desc: 'Casos de exito con fotos Antes/Despues.' },
+                  { key: 'reviews', name: 'Gestor de Resenas', desc: 'Prueba social con testimonios de clientes.' },
+                  { key: 'services', name: 'Catalogo de Servicios', desc: 'Matriz de servicios y precios base.' },
+                  { key: 'analytics', name: 'Analitica Comercial', desc: 'Metricas de conversion y trafico web.' },
+                  { key: 'cms', name: 'Editor de Contenidos', desc: 'Cambio de telefonos y textos publicos.' }
                 ].map((m) => (
                   <div
                     key={m.key}
